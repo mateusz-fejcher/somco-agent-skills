@@ -1,5 +1,5 @@
 ---
-name: qt6-porting-review
+name: somco-qt6-porting-review
 description: >-
   Invoke when the user asks to check, audit, or review Qt5-to-Qt6
   porting readiness -- or suggest before starting a Qt6 migration.

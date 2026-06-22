@@ -42,6 +42,8 @@ for the full cross-platform story.
 | `qt-figma-token-extraction` | Process | Extracts design tokens, text styles, and variables from a Figma design system and produces a design-tokens.json plus ready-to-use QML singletons. |
 | `qt-figma-component-generation` | Process | Extracts component metadata from a Figma design system and generates production-ready QML controls mapped to Qt Quick Controls 2 patterns. Requires tokens from `qt-figma-token-extraction`. |
 | `qt-cmake-project` | Conceptual | Sets up and manages Qt 6 projects built with CMake — fresh projects, executables, libraries, QML modules, plugins, folder layout, and static resources. Corrects systematic LLM biases around qmake-isms and the legacy `qt5_*` macros. |
+| `somco-qt5-qt6-migration` | Review | Assesses Qt5-to-Qt6 porting readiness using clazy Qt6 checks, an inline pattern linter, and deep analysis. Read-only. |
+| `somco-qt6-project-audit` | Review | Four-phase Qt6 project audit: Somco house-style conventions (QML/C++/CMake), CMake quality, unit-test presence, and clang-tidy/clazy static analysis. Requires clang-tidy and clazy. |
 
 ### Skill types
 
