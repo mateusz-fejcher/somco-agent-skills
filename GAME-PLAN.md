@@ -1,7 +1,0 @@
-# GAMEPLAN
-- Qt5→Qt6 migration skill – wire in clazy's qt6-* checks (deprecated API fixes, header fixes, QHash signature, etc.) plus your own curated guidance on obsolete/moved/merged modules and qmake→CMake / Widgets→Quick migration steps. Qt's own C++ review skill explicitly doesn't do this.
-- Architecture / house-style skill – checks for Somco's own conventions (qt_add_qml_module usage, business logic separation in QML, your bad-practices list). Qt's blog confirms this is explicitly out of scope for their review skills.
-- CMake quality checker – not covered by any official Qt skill at all.
-- Unit test presence check – a lightweight check (not generation) for whether QML/C++ tests exist at all; you can reuse the CMake-detection logic pattern from qt-qml-test-run for this.
-- clang-tidy/clazy integration – the official qt-cpp-review uses Qt's own Python linter, not clang-tidy/clazy, so add these as an extra deterministic layer if you want that coverage.
-- Report-aggregator + PDF generator – pulls findings from the official skills plus your new ones, scores them, and renders the Somco-branded PDF (score wheel, tiles, table of contents). This is fully custom; nothing in the Qt repo produces this.
