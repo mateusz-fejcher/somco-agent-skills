@@ -1,6 +1,6 @@
-# Somco Qt6 Conventions — Good & Bad Practices
+# Somco Software Qt6 Conventions — Good & Bad Practices
 
-This file defines Somco's house-style rules for Qt6 C++ and QML projects.
+This file defines Somco Software's house-style rules for Qt6 C++ and QML projects.
 Each rule has an ID, rationale, and a concrete good/bad example.
 The audit skill enforces these during the conventions check phase.
 

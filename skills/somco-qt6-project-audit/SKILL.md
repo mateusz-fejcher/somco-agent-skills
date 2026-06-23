@@ -2,7 +2,7 @@
 name: somco-qt6-project-audit
 description: >-
   Invoke when the user asks to audit, review, or check a Qt6 project
-  for quality — covering Somco house-style conventions (QML/C++/CMake),
+  for quality — covering Somco Software house-style conventions (QML/C++/CMake),
   CMake quality, unit-test presence, clang-tidy/clazy static
   analysis, code formatting, and qmllint QML diagnostics.
   Produces a single combined Markdown report. Read-only —
@@ -10,18 +10,18 @@ description: >-
 license: BSD-3-Clause
 compatibility: Designed for Claude Code, GitHub Copilot, and similar agents.
 metadata:
-  author: Somco
+  author: Somco Software
   version: "1.0"
   qt-version: "6.x"
   category: review
 ---
 
-# Somco Qt6 Project Audit
+# Somco Software Qt6 Project Audit
 
 A structured, read-only audit skill that checks a Qt6 project across
 four dimensions:
 
-1. **Somco conventions** — house-style rules for QML, C++, and CMake
+1. **Somco Software conventions** — house-style rules for QML, C++, and CMake
 2. **CMake quality** — structural and correctness checks for the build
 3. **Unit-test presence** — whether QML and C++ tests exist at all
 4. **clang-tidy / clazy** — deterministic static analysis layer
@@ -33,7 +33,7 @@ Markdown report.
 
 ## When to use this skill
 
-- "audit this project", "check project quality", "run the Somco audit"
+- "audit this project", "check project quality", "run the Somco Software audit"
 - "check conventions", "are we following best practices"
 - Before merging a feature branch to verify project health
 - When onboarding to a new Qt6 codebase
@@ -69,7 +69,7 @@ repo", or when a specific path is given without commit language.
 
 ---
 
-## Phase 1: Somco Conventions Check
+## Phase 1: Somco Software Conventions Check
 
 Load the conventions from
 [`references/somco-conventions.md`](references/somco-conventions.md).
@@ -517,7 +517,7 @@ Map qmllint categories to report severities:
 Present the final report as follows. Use exactly this structure.
 
 ```
-## Somco Qt6 Project Audit Report
+## Somco Software Qt6 Project Audit Report
 
 **Scope**: [diff: `git diff HEAD~1..HEAD` | files: <paths>]
 **Files reviewed**: N
@@ -664,4 +664,4 @@ Never overwrite anything that looks like project source.
 ## References
 
 - [`references/somco-conventions.md`](references/somco-conventions.md)
-  — Somco's good and bad practices for Qt6 QML, C++, and CMake
+  — Somco Software's good and bad practices for Qt6 QML, C++, and CMake

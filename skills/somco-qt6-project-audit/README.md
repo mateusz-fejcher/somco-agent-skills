@@ -2,7 +2,7 @@
 
 A read-only audit skill for Qt6 projects that checks six dimensions in a single pass:
 
-1. **Somco conventions** — house-style rules for QML, C++, and CMake (see `references/somco-conventions.md`)
+1. **Somco Software conventions** — house-style rules for QML, C++, and CMake (see `references/somco-conventions.md`)
 2. **CMake quality** — structural and correctness checks for the build system
 3. **Unit-test presence** — lightweight check for whether QML and C++ tests exist
 4. **clang-tidy / clazy** — deterministic static analysis layer
@@ -53,7 +53,7 @@ Audit this Qt6 project for quality
 ```
 
 ```
-Run a Somco project audit on src/
+Run a Somco Software project audit on src/
 ```
 
 ## Output
