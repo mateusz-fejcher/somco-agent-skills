@@ -3,8 +3,9 @@ name: somco-qt6-project-audit
 description: >-
   Invoke when the user asks to audit, review, or check a Qt6 project
   for quality — covering Somco house-style conventions (QML/C++/CMake),
-  CMake quality, unit-test presence, and clang-tidy/clazy static
-  analysis. Produces a single combined Markdown report. Read-only —
+  CMake quality, unit-test presence, clang-tidy/clazy static
+  analysis, code formatting, and qmllint QML diagnostics.
+  Produces a single combined Markdown report. Read-only —
   never modifies code.
 license: BSD-3-Clause
 compatibility: Designed for Claude Code, GitHub Copilot, and similar agents.
@@ -25,8 +26,9 @@ four dimensions:
 3. **Unit-test presence** — whether QML and C++ tests exist at all
 4. **clang-tidy / clazy** — deterministic static analysis layer
 5. **Code formatting** — clang-format and qmlformat dry-run checks
+6. **qmllint** — QML type-checking and lint diagnostics
 
-All five phases run for every audit. The output is a single combined
+All six phases run for every audit. The output is a single combined
 Markdown report.
 
 ## When to use this skill
@@ -413,6 +415,103 @@ If the output differs, the file is not formatted correctly.
 
 ---
 
+## Phase 6: qmllint Check
+
+Run `qmllint` on all in-scope QML files to catch type errors,
+unresolved imports, deprecated syntax, and binding issues that
+pattern-based rules cannot detect.
+
+### Step 6a — Locate qmllint
+
+Search in order:
+
+1. Environment variable `QMLLINT_PATH`
+2. `which qmllint`
+
+If not found, print and skip the entire phase:
+
+> **qmllint not found.** Skipping QML lint analysis.
+> Install Qt6 development tools or set
+> `QMLLINT_PATH=/path/to/qmllint`.
+
+If found, verify it is a Qt6 version:
+
+```bash
+<qmllint-path> --version
+```
+
+Check that the major version is `6`. If less than 6, print and skip:
+
+> **qmllint is Qt5 (version X.Y.Z).** This audit targets Qt6
+> projects. Skipping qmllint checks. Install qmllint from your
+> Qt6 installation or set `QMLLINT_PATH` to the Qt6 binary.
+
+### Step 6b — Locate import paths
+
+qmllint needs import paths to resolve types. Collect them from:
+
+1. `qt_add_qml_module` `URI` declarations in CMakeLists.txt — map
+   each URI to its source directory
+2. Build directory `qml/` or `qml_modules/` subdirectories (if a
+   build directory exists from Phase 4)
+3. Qt installation's `qml/` directory (from `qmake -query
+   QT_INSTALL_QML` or `qt-cmake -DQT_INSTALL_PREFIX` if available)
+
+Assemble the import path list as `-I <path>` arguments.
+
+### Step 6c — Run qmllint
+
+For each in-scope QML file (`*.qml`):
+
+```bash
+<qmllint-path> -I <import-path-1> -I <import-path-2> ... <file>
+```
+
+If a `qmllint.ini` file exists in the project root or a parent
+directory, qmllint picks it up automatically.
+
+Parse output into structured findings. Each diagnostic line follows
+the pattern:
+
+```
+<file>:<line>:<col>: warning: <message> [<category>]
+```
+
+### Step 6d — Classify findings
+
+Map qmllint categories to report severities:
+
+| Category | Severity |
+|---|---|
+| `import` — unresolved or deprecated import | Warning |
+| `type` — unresolved type | Warning |
+| `property` — unresolved or deprecated property | Warning |
+| `signal` — unresolved signal or handler | Warning |
+| `with` — deprecated `with` statement | Warning |
+| `inheritance-cycle` — type inheritance loop | Blocking |
+| `deprecated` — use of deprecated API | Suggestion |
+| `unqualified` — unqualified access | Suggestion |
+| `unused-imports` — import not referenced | Suggestion |
+| `compiler` — issues preventing QML compilation | Warning |
+| Other / uncategorized | Warning |
+
+### Step 6e — Report findings
+
+| ID | Condition | Severity |
+|---|---|---|
+| QL-001 | Unresolved import | Warning |
+| QL-002 | Unresolved type | Warning |
+| QL-003 | Unresolved property | Warning |
+| QL-004 | Unresolved signal or handler | Warning |
+| QL-005 | Deprecated API usage | Suggestion |
+| QL-006 | Unqualified access | Suggestion |
+| QL-007 | Unused import | Suggestion |
+| QL-008 | Inheritance cycle | Blocking |
+| QL-009 | QML compiler issue | Warning |
+| QL-010 | Other qmllint diagnostic | Warning |
+
+---
+
 ## Output Format
 
 Present the final report as follows. Use exactly this structure.
@@ -510,6 +609,23 @@ For each finding:
 
 ---
 
+### 6. qmllint
+
+**qmllint**: [ran | skipped: not found]
+**Import paths**: <list of -I paths used>
+**Config**: [`qmllint.ini` found | default settings]
+**Findings**: N (M blocking, K warning, J suggestion)
+
+For each finding:
+
+#### [QL-NNN] <Short title>
+- **File**: `path/to/file.qml:42`
+- **Category**: <qmllint category>
+- **Severity**: Blocking | Warning | Suggestion
+- **Finding**: <qmllint diagnostic message>
+
+---
+
 ### Summary
 
 | Phase | Blocking | Warning | Suggestion |
@@ -519,6 +635,7 @@ For each finding:
 | Test Presence | N | N | N |
 | Static Analysis | N | N | N |
 | Formatting | N | N | N |
+| qmllint | N | N | N |
 | **Total** | **N** | **N** | **N** |
 
 ### Verdict
@@ -530,9 +647,19 @@ For each finding:
 (Use the appropriate verdict line based on findings.)
 ```
 
-Print the report in chat. Only write it to a file if asked, and only
-as a clearly-named new file (e.g., `somco_audit_report.md`) — never
-overwrite anything that looks like project source.
+Print a brief summary in chat with the verdict and top-level counts.
+
+Additionally, generate a standalone HTML report using
+[`references/template.html`](references/template.html) as the visual
+reference. Populate the template structure with the actual findings,
+counts, and verdict from this audit run. Write the HTML file to the
+project root as `somco_audit_report.html`. Tell the user the file
+location so they can open it in a browser:
+
+> Report saved to `somco_audit_report.html` -- open it in a browser
+> for the full formatted view.
+
+Never overwrite anything that looks like project source.
 
 ## References
 

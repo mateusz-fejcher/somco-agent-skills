@@ -394,9 +394,19 @@ RHI-based rendering, the rewritten QtMultimedia backend, QtWebEngine
 API drift).
 ```
 
-Print the report in chat. Only write it to a file if asked, and only
-as a clearly-named new file (e.g. `qt6_porting_report.md`) -- never
-overwrite anything that looks like project source.
+Print a brief summary in chat with the verdict and top-level counts.
+
+Additionally, generate a standalone HTML report using
+[`references/template.html`](references/template.html) as the visual
+reference. Populate the template structure with the actual findings,
+counts, and verdict from this audit run. Write the HTML file to the
+project root as `qt6_porting_report.html`. Tell the user the file
+location so they can open it in a browser:
+
+> Report saved to `qt6_porting_report.html` -- open it in a browser
+> for the full formatted view.
+
+Never overwrite anything that looks like project source.
 
 ## References
 

@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Qt6 Porting Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --green:      #5fc79e;
+      --green-soft: rgba(95, 199, 158, 0.12);
+      --green-mid:  rgba(95, 199, 158, 0.25);
+      --yellow:     #f59e0b;
+      --yellow-soft: rgba(245, 158, 11, 0.12);
+      --yellow-mid:  rgba(245, 158, 11, 0.25);
+      --red:        #ef4444;
+      --red-soft:   rgba(239, 68, 68, 0.12);
+      --red-mid:    rgba(239, 68, 68, 0.25);
+      --blue:       #3b82f6;
+      --blue-soft:  rgba(59, 130, 246, 0.12);
+      --blue-mid:   rgba(59, 130, 246, 0.25);
+      --purple:     #8b5cf6;
+      --purple-soft: rgba(139, 92, 246, 0.12);
+      --purple-mid:  rgba(139, 92, 246, 0.25);
+      --bg:         #f7f8fa;
+      --white:      #ffffff;
+      --surface:    #ffffff;
+      --border:     #e8eaed;
+      --border-soft:#f0f2f5;
+      --text:       #111827;
+      --text-muted: #6b7280;
+      --text-light: #9ca3af;
+      --font:       'Inter', sans-serif;
+      --mono:       'JetBrains Mono', monospace;
+      --radius:     12px;
+      --radius-sm:  8px;
+      --shadow:     0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
+      --shadow-lg:  0 4px 24px rgba(0,0,0,.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .accent-bar {
+      height: 4px;
+      background: linear-gradient(90deg, var(--green) 0%, #4db88e 100%);
+    }
+
+    /* ─── HEADER ──────────────────────────────────── */
+    .header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 32px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .logo {
+      width: 170px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .logo img { width: 100%; height: 100%; object-fit: contain; }
+    .logo-initials {
+      font-family: var(--mono);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--green);
+      letter-spacing: -0.5px;
+    }
+
+    .header-titles h1 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      color: var(--text);
+    }
+    .header-titles p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+    .report-date {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    /* ─── VERDICT PILL ────────────────────────────── */
+    .verdict-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+    }
+    .verdict-pill::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .verdict-pill.ready {
+      background: var(--green-soft);
+      border: 1px solid var(--green-mid);
+      color: var(--green);
+    }
+    .verdict-pill.ready::before { background: var(--green); }
+    .verdict-pill.needs-work {
+      background: var(--yellow-soft);
+      border: 1px solid var(--yellow-mid);
+      color: var(--yellow);
+    }
+    .verdict-pill.needs-work::before { background: var(--yellow); }
+    .verdict-pill.not-ready {
+      background: var(--red-soft);
+      border: 1px solid var(--red-mid);
+      color: var(--red);
+    }
+    .verdict-pill.not-ready::before { background: var(--red); }
+
+    /* ─── MAIN CONTENT ────────────────────────────── */
+    .main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 48px 64px;
+    }
+
+    /* ─── SCOPE BAR ───────────────────────────────── */
+    .scope-bar {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 24px;
+      margin-bottom: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      font-size: 13px;
+      box-shadow: var(--shadow);
+    }
+    .scope-bar .scope-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .scope-bar .scope-label {
+      font-weight: 600;
+      color: var(--text);
+    }
+    .scope-bar .scope-value {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ─── AGGREGATE STATS ─────────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform .3s ease;
+    }
+    .stat-card:hover::after { transform: scaleX(1); }
+    .stat-card.blocking::after { background: var(--red); }
+    .stat-card.warning::after { background: var(--yellow); }
+    .stat-card.suggestion::after { background: var(--blue); }
+    .stat-card.investigate::after { background: var(--purple); }
+    .stat-card.files::after { background: var(--green); }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .stat-value {
+      font-family: var(--mono);
+      font-size: 32px;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+    .stat-value.red { color: var(--red); }
+    .stat-value.yellow { color: var(--yellow); }
+    .stat-value.blue { color: var(--blue); }
+    .stat-value.green { color: var(--green); }
+    .stat-value.purple { color: var(--purple); }
+    .stat-delta {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 8px;
+      font-family: var(--mono);
+    }
+
+    /* ─── SECTION LABEL ───────────────────────────── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ─── PHASE CARDS ─────────────────────────────── */
+    .phase-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+      overflow: hidden;
+      transition: box-shadow .2s ease;
+    }
+    .phase-card:hover {
+      box-shadow: var(--shadow-lg);
+    }
+
+    .phase-header {
+      padding: 22px 24px 18px;
+      border-bottom: 1px solid var(--border-soft);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .phase-header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .phase-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--green-soft);
+      border: 1px solid var(--green-mid);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--green);
+      flex-shrink: 0;
+    }
+
+    .phase-title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      color: var(--text);
+    }
+    .phase-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .phase-counts {
+      display: flex;
+      gap: 12px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .phase-count {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      padding: 3px 9px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .phase-count.blocking-count {
+      background: var(--red-soft);
+      color: var(--red);
+      border: 1px solid var(--red-mid);
+    }
+    .phase-count.warning-count {
+      background: var(--yellow-soft);
+      color: var(--yellow);
+      border: 1px solid var(--yellow-mid);
+    }
+    .phase-count.suggestion-count {
+      background: var(--blue-soft);
+      color: var(--blue);
+      border: 1px solid var(--blue-mid);
+    }
+    .phase-count.investigate-count {
+      background: var(--purple-soft);
+      color: var(--purple);
+      border: 1px solid var(--purple-mid);
+    }
+
+    /* ─── TOOL STATUS ─────────────────────────────── */
+    .tool-status {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border-soft);
+      display: flex;
+      gap: 24px;
+      font-size: 12px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+    .tool-status .tool-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tool-status .tool-name {
+      font-family: var(--mono);
+      font-weight: 500;
+      color: var(--text);
+    }
+    .tool-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+    .tool-badge.ran {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+    .tool-badge.skipped {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    /* ─── FINDINGS LIST ───────────────────────────── */
+    .findings-list {
+      padding: 0;
+    }
+
+    .finding {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border-soft);
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .finding:last-child { border-bottom: none; }
+
+    .finding-severity {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+    .finding-severity.blocking { background: var(--red); }
+    .finding-severity.warning { background: var(--yellow); }
+    .finding-severity.suggestion { background: var(--blue); }
+    .finding-severity.investigate { background: var(--purple); }
+
+    .finding-content { flex: 1; min-width: 0; }
+
+    .finding-rule {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .finding-rule .rule-id {
+      color: var(--green);
+    }
+
+    .finding-category {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: var(--green-soft);
+      color: var(--green);
+      border: 1px solid var(--green-mid);
+      margin-left: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      vertical-align: middle;
+    }
+
+    .finding-message {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .finding-action {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-top: 6px;
+      padding-left: 14px;
+      border-left: 2px solid var(--green-mid);
+    }
+
+    .finding-file {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-light);
+      margin-top: 6px;
+    }
+
+    .finding-confidence {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+
+    /* ─── SUMMARY TABLE ───────────────────────────── */
+    .summary-table-wrap {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .summary-table th {
+      text-align: left;
+      padding: 14px 24px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .summary-table td {
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .summary-table tr:last-child td { border-bottom: none; }
+    .summary-table tr.total td {
+      font-weight: 600;
+      border-top: 2px solid var(--border);
+      background: var(--bg);
+    }
+    .summary-table .count {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .summary-table .count.red { color: var(--red); }
+    .summary-table .count.yellow { color: var(--yellow); }
+    .summary-table .count.blue { color: var(--blue); }
+    .summary-table .count.purple { color: var(--purple); }
+
+    /* ─── VERDICT BANNER ──────────────────────────── */
+    .verdict-banner {
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .verdict-banner.ready {
+      background: var(--green-soft);
+      border: 1px solid var(--green-mid);
+    }
+    .verdict-banner.needs-work {
+      background: var(--yellow-soft);
+      border: 1px solid var(--yellow-mid);
+    }
+    .verdict-banner.not-ready {
+      background: var(--red-soft);
+      border: 1px solid var(--red-mid);
+    }
+    .verdict-icon {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+    .verdict-text {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+    }
+    .verdict-banner.ready .verdict-text { color: var(--green); }
+    .verdict-banner.needs-work .verdict-text { color: var(--yellow); }
+    .verdict-banner.not-ready .verdict-text { color: var(--red); }
+    .verdict-detail {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      font-weight: 400;
+    }
+
+    /* ─── DISCLAIMER ──────────────────────────────── */
+    .disclaimer {
+      font-size: 12px;
+      color: var(--text-light);
+      line-height: 1.6;
+      padding: 16px 24px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 24px;
+    }
+
+    /* ─── FOOTER ──────────────────────────────────── */
+    .footer {
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      padding: 20px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer-note {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-light);
+    }
+    .footer-brand {
+      font-size: 12px;
+      color: var(--text-light);
+    }
+    .footer-brand span { color: var(--green); font-weight: 500; }
+
+    /* ─── RESPONSIVE ──────────────────────────────── */
+    @media (max-width: 800px) {
+      .header, .main, .footer { padding-left: 20px; padding-right: 20px; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .scope-bar { flex-direction: column; gap: 12px; }
+      .header-right { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="accent-bar"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">
+      <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUyIiBoZWlnaHQ9IjY0IiB2aWV3Qm94PSIwIDAgMjUyIDY0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNNTEuMTk2NCAxMy4zMzI1VjI2LjU1NjdIMjcuMDQxOVY1MC42NjQ3SDEzLjc5MjFWMjMuNzU3M0MxMy43OTIxIDE4LjAwMDQgMTguNDY5IDEzLjMzMjUgMjQuMjM3IDEzLjMzMjVINTEuMTk2NFoiIGZpbGw9ImJsYWNrIi8+CjxwYXRoIGQ9Ik02NC40NDYyIDI2LjU1NjdWNTMuNDY0MUM2NC40NDYyIDU5LjIyMzIgNTkuNzcxNCA2My44OTEgNTQuMDAxMyA2My44OTFIMjcuMDQxOUwyNy4wNDE5IDUwLjY2NDdMNTEuMTk2NCA1MC42NjQ3TDUxLjE5NjQgMjYuNTU2N0w2NC40NDYyIDI2LjU1NjdaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNNjQuNDQ2MiAwLjEwODI2OUg1MS4xOTY0TDUxLjE5NjQgMTMuMzMyNUg2NC40NDYyVjAuMTA4MjY5WiIgZmlsbD0iYmxhY2siLz4KPHBhdGggZD0iTTEzLjc5MjEgNTAuNjY2OEgwLjU0MjM1OFY2My44OTExSDEzLjc5MjFWNTAuNjY2OFoiIGZpbGw9ImJsYWNrIi8+CjxwYXRoIGQ9Ik04Ni4zNjM3IDQwLjY1NTVDOTEuMzM3MyA0MC42NTU1IDk0LjY5OCA0My41MTc3IDk0Ljc0MjggNDcuODExSDg5LjU0NTFDODkuNTAwMyA0NS45MzI2IDg4LjI0NTYgNDQuNzI1MSA4Ni4xMzk3IDQ0LjcyNTFDODMuOTg5IDQ0LjcyNTEgODIuNzM0NSA0NS43MDg5IDgyLjczNDUgNDcuMzYzN0M4Mi43MzQ1IDQ4LjYxNTkgODMuNzIwMiA0OS40MjA5IDg1LjYwMjEgNDkuODY4Mkw4OS41ODk5IDUwLjgwNzFDOTMuMzA4OSA1MS42NTY5IDk1LjE5MDkgNTMuMzU2MiA5NS4xOTA5IDU2Ljc1NTFDOTUuMTkwOSA2MS4yMjcyIDkxLjM4MjIgNjQgODUuOTE1NyA2NEM4MC40MDQ0IDY0IDc2LjkwOTUgNjEuMDQ4MiA3Ni45MDk1IDU2LjcxMDNIODIuMTA3MkM4Mi4xNTIgNTguNjMzMyA4My41ODU4IDU5Ljg0MSA4Ni4wOTQ5IDU5Ljg0MUM4OC42NDkgNTkuODQxIDkwLjAzOCA1OC44MTIxIDkwLjAzOCA1Ny4yMDIyQzkwLjAzNzkgNTYuMDg0MiA4OS40NTU1IDU1LjI3OTUgODcuNDg0MSA1NC44MzIyTDgzLjQ5NjEgNTMuODkzQzc5LjUwODMgNTIuOTk4NiA3Ny41ODE2IDUxLjEyMDIgNzcuNTgxNiA0Ny41ODczQzc3LjU4MTYgNDMuMjQ5NCA4MS4yNTU3IDQwLjY1NTUgODYuMzYzNyA0MC42NTU1Wk0xOTguOTkzIDQwLjY1NTVDMjA0Ljk1MyA0MC42NTU1IDIwOC42MjcgNDMuODc1MyAyMDguNjI3IDUwLjAwMjJWNjMuNDE4NUgyMDMuODMzTDIwMy40MjkgNjAuMTUzOEMyMDIuNDg4IDYyLjQzNDcgMTk5LjQ4NiA2NCAxOTYuMDM2IDY0QzE5MS4zMzEgNjQgMTg4LjQ2NCA2MS4yNzE4IDE4OC40NjQgNTcuMTEyOEMxODguNDY0IDUzLjA0MzIgMTkxLjQyMSA1MC40OTQzIDE5Ni42NjMgNTAuMDkxOEwyMDMuMjk1IDQ5LjU5OTdWNDkuMTA3OEMyMDMuMjk1IDQ2LjExMTQgMjAxLjUwMiA0NC45MDQyIDE5OC43MjQgNDQuOTA0MkMxOTUuNDk4IDQ0LjkwNDIgMTkzLjcwNiA0Ni4yNDU2IDE5My43MDYgNDguNTcxM0gxODkuMDQ2QzE4OS4wNDYgNDMuNzg2MiAxOTIuOTg5IDQwLjY1NTUgMTk4Ljk5MyA0MC42NTU1Wk0yNDAuNTY3IDQwLjY1NTVDMjQ3LjE5OCA0MC42NTU1IDI1MS40MSA0NS4wODI4IDI1MS40MSA1MS45N1Y1My42MjQ3TDIzNC43NDIgNTMuNjY5M0MyMzUuMTQ1IDU3LjU2MDEgMjM3LjIwNiA1OS41Mjc3IDI0MC44MzYgNTkuNTI3N0MyNDEuNTAzIDU5LjUyNzcgMjQyLjExOSA1OS40NzAxIDI0Mi42ODEgNTkuMzU3NlY2My44ODM4QzI0Mi4wNjEgNjMuOTYwMyAyNDEuNDE1IDY0IDI0MC43NDYgNjRDMjM0LjE1OSA2NCAyMjkuNTQ0IDU5LjIxNDYgMjI5LjU0NCA1Mi4zNzI1QzIyOS41NDQgNDUuNDQwNyAyMzQuMDcgNDAuNjU1NSAyNDAuNTY3IDQwLjY1NTVaTTEwOS44ODMgNDAuNzAwMUMxMTYuNzM4IDQwLjcwMDEgMTIxLjcxMiA0NS40NDA3IDEyMS43MTIgNTIuMzI3NkMxMjEuNzEyIDU5LjIxNDggMTE2LjczOCA2My45NTU0IDEwOS44ODMgNjMuOTU1NEMxMDMuMDI3IDYzLjk1NTQgOTguMDUzOCA1OS4yMTQ4IDk4LjA1MzggNTIuMzI3NkM5OC4wNTM4IDQ1LjQ0MDcgMTAzLjAyNyA0MC43MDAxIDEwOS44ODMgNDAuNzAwMVpNMTM0LjU2MSAzMC4xNDYyQzEzNS40MTIgMzAuMTQ2MiAxMzYuNDQyIDMwLjE5MDggMTM3LjM4MyAzMC4zNjk2VjM1LjAyMDZIMTM1LjQ1N0MxMzIuOTkyIDM1LjAyMDYgMTMyLjM2NSAzNi40NTE3IDEzMi4zNjUgMzguNjQzMVY0MS4zMjYySDE0MS42ODVWMzQuNDM5NUgxNDcuMTUxVjQxLjMyNjJIMTUxLjQ1M1Y0NS44ODc3SDE0Ny4xNTFWNjMuNDE4NUgxNDEuNjg1VjQ1Ljg4NzdIMTMyLjM2NVY2My40MTg1SDEyNi45NDNWNDUuODg3N0gxMjMuNzYyVjQxLjMyNjJIMTI2Ljk0M1YzOC42NDMxQzEyNi45NDMgMzIuNjUwNSAxMzAuMDggMzAuMTQ2MiAxMzQuNTYxIDMwLjE0NjJaTTE2MS4xNTUgNTAuODA3MUMxNjEuNjQ4IDUyLjU1MTMgMTYyLjA5NiA1NC40NzQzIDE2Mi40OTkgNTYuNTMxNUMxNjIuOTAzIDU0LjM4NDkgMTYzLjMwNiA1Mi45OTg2IDE2NC4wMjMgNTAuODA3MUwxNjcuMDcgNDEuMzI2MkgxNzIuNjI2TDE3NS41ODMgNTAuODA3MUMxNzUuODUyIDUxLjcwMTcgMTc2Ljc0OCA1NS4wMTEgMTc3LjAxNyA1Ni40ODY3QzE3Ny4zNzUgNTQuODMyMiAxNzguMDkyIDUyLjE5MzYgMTc4LjQ5NiA1MC44MDcxTDE4MS40NTMgNDEuMzI2MkgxODcuMjMzTDE3OS41NzEgNjMuNDE4NUgxNzQuNDYzTDE3MS40MTYgNTMuODQ4MUMxNzAuNTIgNTAuOTQxNCAxNzAuMDI3IDQ4LjgzOTYgMTY5Ljg0OCA0Ny43MjE1QzE2OS42MjQgNDguNzUwMSAxNjkuMjIgNTAuMzE1MiAxNjguMSA1My45Mzc2TDE2NS4wNTMgNjMuNDE4NUgxNTkuNzIxTDE1Mi41NTIgNDEuMzI2MkgxNTguMjQzTDE2MS4xNTUgNTAuODA3MVpNMjI1LjQ2OCA0MC45MjM3QzIyNi4yMyA0MC45MjM3IDIyNi45OTEgNDEuMDEzNCAyMjcuODg3IDQxLjIzNjhWNDYuMjkwNEgyMjUuODcxQzIyMS45MjggNDYuMjkwNCAyMTkuNDY0IDQ4LjM5MjUgMjE5LjQ2NCA1Mi42ODU1VjYzLjQxODVIMjEzLjk5N1Y0MS4zNzEzSDIxOS4xNUwyMTkuNDY0IDQ0LjU5MDlDMjIwLjQwNSA0Mi4zOTk3IDIyMi41MTEgNDAuOTIzNyAyMjUuNDY4IDQwLjkyMzdaTTE5OC43MjQgNTMuNjY5M0MxOTUuMzE5IDUzLjk4MjQgMTk0LjAyIDU1LjEwMDQgMTk0LjAyIDU2Ljg4OTRDMTk0LjAyIDU4LjkwMTggMTk1LjM2NCA1OS44ODU2IDE5Ny44MjggNTkuODg1NkMyMDEuMTg5IDU5Ljg4NTYgMjAzLjM0IDU3Ljg3MzIgMjAzLjM0IDU0LjQ3NDNWNTMuMzExNEwxOTguNzI0IDUzLjY2OTNaTTEwOS44ODMgNDUuNTc0OUMxMDYuMTE5IDQ1LjU3NDkgMTAzLjUyIDQ4LjMwMjggMTAzLjUyIDUyLjMyNzZDMTAzLjUyIDU2LjM1MjcgMTA2LjExOSA1OS4wODA2IDEwOS44ODMgNTkuMDgwNkMxMTMuNjQ3IDU5LjA4MDYgMTE2LjI0NSA1Ni4zNTI3IDExNi4yNDUgNTIuMzI3NkMxMTYuMjQ1IDQ4LjMwMjggMTEzLjY0NyA0NS41NzQ5IDEwOS44ODMgNDUuNTc0OVpNMjUxLjQ3OCA1Ni4zNzA1VjU2LjI2MzNIMjUxLjVDMjUxLjQ5MyA1Ni4yOTkxIDI1MS40ODUgNTYuMzM0OSAyNTEuNDc4IDU2LjM3MDVaTTI0MC42MTIgNDUuMTI3NkMyMzcuMzg2IDQ1LjEyNzYgMjM1LjQxNCA0Ni44NzE4IDIzNC44NzYgNTAuMTgxSDI0NS45ODhDMjQ1Ljk4OCA0Ny4xNCAyNDMuODgzIDQ1LjEyNzYgMjQwLjYxMiA0NS4xMjc2Wk04Ni4zNjM3IDBDOTEuMzM3NCAwIDk0LjY5OCAyLjg2MjE1IDk0Ljc0MjggNy4xNTUzOEg4OS41NDUxQzg5LjUwMDMgNS4yNzcxIDg4LjI0NTYgNC4wNjk2OSA4Ni4xMzk3IDQuMDY5NjlDODMuOTg5IDQuMDY5NzEgODIuNzM0NSA1LjA1MzUyIDgyLjczNDUgNi43MDgxOUM4Mi43MzQ1IDcuOTYwMzYgODMuNzIwMiA4Ljc2NTIzIDg1LjYwMjEgOS4yMTI0M0w4OS41ODk5IDEwLjE1MTdDOTMuMzA4OSAxMS4wMDE0IDk1LjE5MDkgMTIuNzAwOCA5NS4xOTA5IDE2LjA5OTVDOTUuMTkwOSAyMC41NzE3IDkxLjM4MjIgMjMuMzQ0NSA4NS45MTU3IDIzLjM0NDVDODAuNDA0NCAyMy4zNDQ1IDc2LjkwOTUgMjAuMzkyOCA3Ni45MDk1IDE2LjA1NDlIODIuMTA3MkM4Mi4xNTIgMTcuOTc3OSA4My41ODU4IDE5LjE4NTIgODYuMDk0OSAxOS4xODUzQzg4LjY0OSAxOS4xODUzIDkwLjAzOCAxOC4xNTY3IDkwLjAzOCAxNi41NDY4QzkwLjAzOCAxNS40Mjg4IDg5LjQ1NTYgMTQuNjIzNyA4Ny40ODQxIDE0LjE3NjVMODMuNDk2MSAxMy4yMzc0Qzc5LjUwODMgMTIuMzQzIDc3LjU4MTYgMTAuNDY0NyA3Ny41ODE2IDYuOTMxOEM3Ny41ODE2IDIuNTkzODcgODEuMjU1NyAzLjQzODE1ZS0wNSA4Ni4zNjM3IDBaTTE3NS40NTcgMEMxODEuNTA2IDAgMTg1LjYyOCAzLjM1NDEgMTg2LjIxMSA4LjY3NTlIMTgwLjc0NEMxODAuMTE3IDYuMTcxNTIgMTc4LjI4IDQuODc0NTEgMTc1LjY4MSA0Ljg3NDUxQzE3Mi4xODYgNC44NzQ1MSAxNjkuODU2IDcuNTEzMiAxNjkuODU2IDExLjY3MjJDMTY5Ljg1NiAxNS44MzEzIDE3Mi4wMDcgMTguNDI1MSAxNzUuNTAyIDE4LjQyNTFDMTc4LjIzNSAxOC40MjUxIDE4MC4xNjIgMTcuMDgzNSAxODAuNzQ0IDE0LjY2ODZIMTg2LjI1NkMxODUuNTg0IDE5LjgxMTUgMTgxLjI4MiAyMy4zNDQ1IDE3NS41MDIgMjMuMzQ0NUMxNjguNzgxIDIzLjM0NDUgMTY0LjM5IDE4LjY5MzQgMTY0LjM5IDExLjY3MjJDMTY0LjM5IDQuODI5OTQgMTY4LjkxNSAzLjQ3NzU0ZS0wNiAxNzUuNDU3IDBaTTEwOS44ODMgMC4wNDQ2NzQ1QzExNi43MzggMC4wNDQ2ODc3IDEyMS43MTIgNC43ODUyMyAxMjEuNzEyIDExLjY3MjJDMTIxLjcxMiAxOC41NTkzIDExNi43MzggMjMuMjk5NyAxMDkuODgzIDIzLjI5OTdDMTAzLjAyNyAyMy4yOTk3IDk4LjA1MzggMTguNTU5MyA5OC4wNTM4IDExLjY3MjJDOTguMDUzOCA0Ljc4NTIxIDEwMy4wMjcgMC4wNDQ2NzQ1IDEwOS44ODMgMC4wNDQ2NzQ1Wk0yMDAuODU0IDAuMDQ0Njc0NUMyMDcuNzEgMC4wNDQ2NzQ1IDIxMi42ODMgNC43ODUyMSAyMTIuNjgzIDExLjY3MjJDMjEyLjY4MyAxOC41NTkzIDIwNy43MSAyMy4yOTk3IDIwMC44NTQgMjMuMjk5N0MxOTMuOTk5IDIzLjI5OTcgMTg5LjAyNSAxOC41NTkzIDE4OS4wMjUgMTEuNjcyMkMxODkuMDI1IDQuNzg1MjEgMTkzLjk5OSAwLjA0NDY4MTIgMjAwLjg1NCAwLjA0NDY3NDVaTTEzMi4wMDIgNy42MDE0NUMxMzEuNjg4IDguMzI2NzcgMTMxLjUxMSA5LjIwNTEzIDEzMS41MTEgMTAuMjQxMVYyMi43NjMxSDEyNi4wNDVWNy42MDE0NUgxMzIuMDAyWk0xNTEuOTg5IDBDMTU3LjM2NiAzLjY2NjQ0ZS0wNSAxNjAuMzIzIDMuMjE5OTMgMTYwLjMyMyA4LjMxODA2VjIyLjc2MzFIMTU0LjkwMVY5Ljc0OTIyQzE1NC45MDEgNi41NzQwMiAxNTMuMTk4IDQuOTE5NCAxNTAuNiA0LjkxOTRDMTQ3Ljk1NiA0LjkxOTQyIDE0NS45NCA2LjYxODczIDE0NS45NCAxMC4yNDExVjIyLjc2MzFIMTQwLjQ3M1Y5LjcwNDU0QzE0MC40NzMgNi42MTg4IDEzOC44MTUgNC45NjQwOCAxMzYuMjE2IDQuOTY0MDhDMTM0LjM3MiA0Ljk2NDA4IDEzMi43NzcgNS44MTk0OCAxMzIuMDA1IDcuNTk0MDFWMi41NzEyN0MxMzMuMjMxIDEuMDgyNzMgMTM1LjI4NiAwIDEzOC4wNTMgMEMxNDEuNDE0IDMuNDc4NGUtMDUgMTQzLjc0NCAxLjY1NDY2IDE0NC45MDkgNC4yMDM2OUMxNDYuMDI5IDEuNjU0NjQgMTQ4LjYyOCAwIDE1MS45ODkgMFpNMTA5Ljg4MyA0LjkxOTRDMTA2LjExOSA0LjkxOTQgMTAzLjUyIDcuNjQ3MzYgMTAzLjUyIDExLjY3MjJDMTAzLjUyIDE1LjY5NzEgMTA2LjExOSAxOC40MjUxIDEwOS44ODMgMTguNDI1MUMxMTMuNjQ3IDE4LjQyNTEgMTE2LjI0NSAxNS42OTcxIDExNi4yNDUgMTEuNjcyMkMxMTYuMjQ1IDcuNjQ3MzYgMTEzLjY0NyA0LjkxOTQyIDEwOS44ODMgNC45MTk0Wk0yMDAuODU0IDQuOTE5NEMxOTcuMDkgNC45MTk0IDE5NC40OTIgNy42NDczNiAxOTQuNDkyIDExLjY3MjJDMTk0LjQ5MiAxNS42OTcxIDE5Ny4wOSAxOC40MjUxIDIwMC44NTQgMTguNDI1MUMyMDQuNjE4IDE4LjQyNTEgMjA3LjIxNyAxNS42OTcxIDIwNy4yMTcgMTEuNjcyMkMyMDcuMjE3IDcuNjQ3MzYgMjA0LjYxOCA0LjkxOTQgMjAwLjg1NCA0LjkxOTRaIiBmaWxsPSJibGFjayIvPgo8L3N2Zz4K" alt="Somco Software logo" />
+    </div>
+    <div class="header-titles">
+      <h1>Qt6 Porting Report</h1>
+      <p>Qt5 to Qt6 Migration Readiness Assessment</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="report-date">22 Jun 2025</span>
+    <!-- Use class "ready", "needs-work", or "not-ready" -->
+    <span class="verdict-pill not-ready">Not ready</span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- SCOPE BAR -->
+  <div class="scope-bar">
+    <div class="scope-item">
+      <span class="scope-label">Files reviewed:</span>
+      <span class="scope-value">34</span>
+    </div>
+    <div class="scope-item">
+      <span class="scope-label">Clazy pass:</span>
+      <span class="scope-value">ran (3 findings)</span>
+    </div>
+    <div class="scope-item">
+      <span class="scope-label">Date:</span>
+      <span class="scope-value">2025-06-22</span>
+    </div>
+  </div>
+
+  <!-- AGGREGATE STATS -->
+  <div class="stats-row">
+    <div class="stat-card files">
+      <div class="stat-label">Files Reviewed</div>
+      <div class="stat-value green">34</div>
+      <div class="stat-delta">18 .cpp, 6 .h, 8 .qml, 2 CMake</div>
+    </div>
+    <div class="stat-card blocking">
+      <div class="stat-label">Blocking</div>
+      <div class="stat-value red">8</div>
+      <div class="stat-delta">must fix for Qt6</div>
+    </div>
+    <div class="stat-card warning">
+      <div class="stat-label">Warnings</div>
+      <div class="stat-value yellow">6</div>
+      <div class="stat-delta">across all phases</div>
+    </div>
+    <div class="stat-card suggestion">
+      <div class="stat-label">Suggestions</div>
+      <div class="stat-value blue">3</div>
+      <div class="stat-delta">style modernization</div>
+    </div>
+    <div class="stat-card investigate">
+      <div class="stat-label">Investigate</div>
+      <div class="stat-value purple">2</div>
+      <div class="stat-delta">needs manual verification</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- PHASE 1: CLAZY FINDINGS                         -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="section-label">Phase 1 - Clazy Qt6 Checks</div>
+  <div class="phase-card">
+    <div class="phase-header">
+      <div class="phase-header-left">
+        <div class="phase-number">1</div>
+        <div>
+          <div class="phase-title">Clazy Findings</div>
+          <div class="phase-subtitle">clazy-standalone with Qt6-porting checks</div>
+        </div>
+      </div>
+      <div class="phase-counts">
+        <span class="phase-count blocking-count">2 blocking</span>
+        <span class="phase-count warning-count">1 warning</span>
+      </div>
+    </div>
+    <div class="tool-status">
+      <div class="tool-item">
+        <span class="tool-name">clazy-standalone</span>
+        <span class="tool-badge ran">ran</span>
+      </div>
+      <div class="tool-item">
+        <span class="tool-name">compile_commands.json</span>
+        <span class="tool-badge ran">found</span>
+      </div>
+      <div class="tool-item">
+        <span class="tool-name">checks</span>
+        <span class="scope-value">qt6-deprecated-api-fixes, qt6-header-fixes, qt6-qhash-signature, qt6-fwd-fixes, missing-qobject-macro</span>
+      </div>
+    </div>
+    <div class="findings-list">
+      <div class="finding">
+        <div class="finding-severity blocking"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">C-001</span> - Deprecated Qt5 API usage <span class="finding-category">API</span></div>
+          <div class="finding-message">Call to <code>QVariant::type()</code> which returns <code>QVariant::Type</code> (removed in Qt6). The return type changed to <code>QMetaType</code>.</div>
+          <div class="finding-action">Use <code>QVariant::typeId()</code> or <code>QVariant::metaType()</code> instead.</div>
+          <div class="finding-file">src/datamodel.cpp:67 &middot; qt6-deprecated-api-fixes</div>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-severity blocking"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">C-002</span> - Qt6 header reorganization <span class="finding-category">HDR</span></div>
+          <div class="finding-message">Header <code>&lt;QLinkedList&gt;</code> was removed in Qt6. The class no longer exists in QtCore.</div>
+          <div class="finding-action">Replace with <code>std::list</code> or <code>QList</code>.</div>
+          <div class="finding-file">src/cachemanager.h:8 &middot; qt6-header-fixes</div>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-severity warning"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">C-003</span> - qHash signature needs update <span class="finding-category">HASH</span></div>
+          <div class="finding-message"><code>qHash()</code> overload uses <code>uint</code> seed parameter. Qt6 requires <code>size_t</code>.</div>
+          <div class="finding-action">Change seed parameter type from <code>uint</code> to <code>size_t</code>.</div>
+          <div class="finding-file">src/datatypes.h:42 &middot; qt6-qhash-signature</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- PHASE 2: LINT FINDINGS                          -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="section-label">Phase 2 - Inline Pattern Linter</div>
+  <div class="phase-card">
+    <div class="phase-header">
+      <div class="phase-header-left">
+        <div class="phase-number">2</div>
+        <div>
+          <div class="phase-title">Lint Findings</div>
+          <div class="phase-subtitle">Pattern-based checks for removed APIs, modules, build &amp; QML issues</div>
+        </div>
+      </div>
+      <div class="phase-counts">
+        <span class="phase-count blocking-count">5 blocking</span>
+        <span class="phase-count warning-count">4 warnings</span>
+        <span class="phase-count suggestion-count">3 suggestions</span>
+      </div>
+    </div>
+    <div class="findings-list">
+
+      <!-- API findings -->
+      <div class="finding">
+        <div class="finding-severity blocking"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">L-001</span> - QRegExp removed <span class="finding-category">API</span></div>
+          <div class="finding-message">Usage of <code>QRegExp</code> which was removed in Qt6.</div>
+          <div class="finding-action">Replace with <code>QRegularExpression</code>. Note: the API is different - patterns may need adjustment.</div>
+          <div class="finding-file">src/parser.cpp:23 &middot; API-001</div>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-severity blocking"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">L-002</span> - QStringRef removed <span class="finding-category">API</span></div>
+          <div class="finding-message">Usage of <code>QStringRef</code> which was removed in Qt6.</div>
+          <div class="finding-action">Replace with <code>QStringView</code>.</div>
+          <div class="finding-file">src/parser.cpp:55 &middot; API-002</div>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-severity blocking"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">L-003</span> - QTextCodec removed <span class="finding-category">API</span></div>
+          <div class="finding-message">Usage of <code>QTextCodec</code> which was removed from QtCore in Qt6.</div>
+          <div class="finding-action">Use <code>QStringConverter</code> or add <code>Qt5Compat::Core5Compat</code> as a bridge dependency.</div>
+          <div class="finding-file">src/fileloader.cpp:12 &middot; API-003</div>
+        </div>
+      </div>
+
+      <!-- MOD findings -->
+      <div class="finding">
+        <div class="finding-severity blocking"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">L-004</span> - QtGraphicalEffects removed <span class="finding-category">MOD</span></div>
+          <div class="finding-message">Import of <code>QtGraphicalEffects</code> which was removed in Qt6.</div>
+          <div class="finding-action">Use <code>Qt5Compat.GraphicalEffects</code> as a bridge, or migrate to <code>MultiEffect</code>.</div>
+          <div class="finding-file">qml/Effects.qml:3 &middot; MOD-005</div>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-severity blocking"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">L-005</span> - Qt Quick Controls 1 removed <span class="finding-category">MOD</span></div>
+          <div class="finding-message">Import of <code>QtQuick.Controls 1.x</code> which was removed in Qt6.</div>
+          <div class="finding-action">Migrate to Qt Quick Controls 2: <code>import QtQuick.Controls</code>.</div>
+          <div class="finding-file">qml/LegacyPage.qml:2 &middot; MOD-006</div>
+        </div>
+      </div>
+
+      <!-- BLD findings -->
+      <div class="finding">
+        <div class="finding-severity warning"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">L-006</span> - CMake finds Qt5 <span class="finding-category">BLD</span></div>
+          <div class="finding-message"><code>find_package(Qt5 ...)</code> found. Must change to Qt6 or versionless <code>Qt</code>.</div>
+          <div class="finding-action">Change to <code>find_package(Qt6 REQUIRED COMPONENTS ...)</code>.</div>
+          <div class="finding-file">CMakeLists.txt:8 &middot; BLD-001</div>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-severity warning"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">L-007</span> - CMake uses Qt5:: targets <span class="finding-category">BLD</span></div>
+          <div class="finding-message"><code>Qt5::Core</code>, <code>Qt5::Gui</code>, <code>Qt5::Widgets</code> targets found in link commands.</div>
+          <div class="finding-action">Change to <code>Qt6::</code> or versionless <code>Qt::</code> targets.</div>
+          <div class="finding-file">CMakeLists.txt:22 &middot; BLD-002</div>
+        </div>
+      </div>
+
+      <!-- QMAKE finding -->
+      <div class="finding">
+        <div class="finding-severity warning"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">L-008</span> - qmake build system detected <span class="finding-category">QMAKE</span></div>
+          <div class="finding-message">Found <code>myapp.pro</code>, <code>src/src.pri</code>. qmake is not actively developed for Qt6.</div>
+          <div class="finding-action">Migration to CMake is strongly recommended. This skill does not perform qmake-to-CMake conversion.</div>
+          <div class="finding-file">myapp.pro, src/src.pri &middot; QMAKE-001</div>
+        </div>
+      </div>
+
+      <!-- QML findings -->
+      <div class="finding">
+        <div class="finding-severity warning"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">L-009</span> - Versioned QML import <span class="finding-category">QML</span></div>
+          <div class="finding-message">Versioned import <code>import QtQuick 2.15</code>. Qt6 uses unversioned imports.</div>
+          <div class="finding-action">Change to <code>import QtQuick</code>.</div>
+          <div class="finding-file">qml/Main.qml:1 &middot; QML-001</div>
+        </div>
+      </div>
+
+      <!-- STY findings -->
+      <div class="finding">
+        <div class="finding-severity suggestion"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">L-010</span> - Q_FOREACH macro <span class="finding-category">STY</span></div>
+          <div class="finding-message">Usage of <code>foreach</code> macro which is deprecated.</div>
+          <div class="finding-action">Consider using C++ range-based for loops.</div>
+          <div class="finding-file">src/datamodel.cpp:92 &middot; STY-001</div>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-severity suggestion"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">L-011</span> - Old-style signal/slot syntax <span class="finding-category">STY</span></div>
+          <div class="finding-message">Old-style <code>SIGNAL()</code>/<code>SLOT()</code> macros detected.</div>
+          <div class="finding-action">Consider using pointer-to-member connect syntax for compile-time checking.</div>
+          <div class="finding-file">src/appcontroller.cpp:38 &middot; STY-002</div>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-severity suggestion"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">L-012</span> - Qt algorithm wrappers removed <span class="finding-category">STY</span></div>
+          <div class="finding-message">Usage of <code>qSort</code> which was removed in Qt6.</div>
+          <div class="finding-action">Use <code>std::sort</code> instead.</div>
+          <div class="finding-file">src/sortutil.cpp:17 &middot; STY-003</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- PHASE 3: DEEP-ANALYSIS FINDINGS                 -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="section-label">Phase 3 - Deep Analysis</div>
+  <div class="phase-card">
+    <div class="phase-header">
+      <div class="phase-header-left">
+        <div class="phase-number">3</div>
+        <div>
+          <div class="phase-title">Deep-Analysis Findings</div>
+          <div class="phase-subtitle">Module-level risks, context properties &amp; ambiguous cases</div>
+        </div>
+      </div>
+      <div class="phase-counts">
+        <span class="phase-count blocking-count">1 blocking</span>
+        <span class="phase-count warning-count">1 warning</span>
+      </div>
+    </div>
+    <div class="findings-list">
+      <div class="finding">
+        <div class="finding-severity blocking"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">D-001</span> - setContextProperty usage <span class="finding-category">Context property</span></div>
+          <div class="finding-message"><code>setContextProperty("appController", ...)</code> exposes a C++ object to QML via the deprecated context property mechanism.</div>
+          <div class="finding-action">Register as a QML singleton using <code>qmlRegisterSingletonInstance</code> or the <code>QML_SINGLETON</code> macro.</div>
+          <div class="finding-file">src/main.cpp:45</div>
+          <div class="finding-confidence">Confidence: 95/100</div>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-severity warning"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">D-002</span> - QtMultimedia backend rewrite <span class="finding-category">Module risk</span></div>
+          <div class="finding-message">Heavy <code>QtMultimedia</code> usage detected (QMediaPlayer, QAudioOutput, QVideoWidget across 4 files). The backend was completely rewritten in Qt6 - not just renamed. Runtime regressions are likely even if the code compiles.</div>
+          <div class="finding-action">Plan for thorough manual testing of all multimedia features after migration. Review the Qt6 multimedia migration guide.</div>
+          <div class="finding-file">src/mediaplayer.cpp, src/audioengine.cpp, qml/VideoView.qml, qml/AudioControls.qml</div>
+          <div class="finding-confidence">Confidence: 88/100</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- NEEDS MANUAL VERIFICATION                       -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="section-label">Needs Manual Verification</div>
+  <div class="phase-card">
+    <div class="phase-header">
+      <div class="phase-header-left">
+        <div class="phase-number">?</div>
+        <div>
+          <div class="phase-title">Investigation Targets</div>
+          <div class="phase-subtitle">Findings between 60&ndash;79 confidence - requires developer review</div>
+        </div>
+      </div>
+      <div class="phase-counts">
+        <span class="phase-count investigate-count">2 investigate</span>
+      </div>
+    </div>
+    <div class="findings-list">
+      <div class="finding">
+        <div class="finding-severity investigate"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">I-001</span> - Possible custom QML shader <span class="finding-category">Module risk</span></div>
+          <div class="finding-message"><code>ShaderEffect</code> usage detected but shader source is loaded from a variable, not an inline string. Cannot determine if it uses GLSL (requires <code>.qsb</code> conversion for Qt6 RHI).</div>
+          <div class="finding-action">Inspect the shader source file - if it contains raw GLSL, it must be compiled to <code>.qsb</code> format using the Qt Shader Tools.</div>
+          <div class="finding-file">qml/CustomEffect.qml:18</div>
+          <div class="finding-confidence">Confidence: 72/100 &middot; Unverified because: shader source is loaded dynamically</div>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-severity investigate"></div>
+        <div class="finding-content">
+          <div class="finding-rule"><span class="rule-id">I-002</span> - Qt5Compat bridge dependency <span class="finding-category">Module risk</span></div>
+          <div class="finding-message">Existing <code>Qt5Compat</code> usage detected. This is a bridge, not a permanent solution - but cannot verify whether the team is actively migrating away from it.</div>
+          <div class="finding-action">Review <code>Qt5Compat</code> usage and create a plan to migrate to native Qt6 equivalents.</div>
+          <div class="finding-file">CMakeLists.txt:15</div>
+          <div class="finding-confidence">Confidence: 65/100 &middot; Unverified because: cannot determine migration timeline from code alone</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- SUMMARY TABLE                                   -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="section-label">Summary</div>
+  <div class="summary-table-wrap">
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Blocking</th>
+          <th>Warning</th>
+          <th>Suggestion</th>
+          <th>Investigate</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>API</td>
+          <td><span class="count red">4</span></td>
+          <td><span class="count yellow">1</span></td>
+          <td><span class="count">0</span></td>
+          <td><span class="count">0</span></td>
+        </tr>
+        <tr>
+          <td>HDR</td>
+          <td><span class="count red">1</span></td>
+          <td><span class="count">0</span></td>
+          <td><span class="count">0</span></td>
+          <td><span class="count">0</span></td>
+        </tr>
+        <tr>
+          <td>MOD</td>
+          <td><span class="count red">2</span></td>
+          <td><span class="count yellow">1</span></td>
+          <td><span class="count">0</span></td>
+          <td><span class="count purple">2</span></td>
+        </tr>
+        <tr>
+          <td>BLD</td>
+          <td><span class="count">0</span></td>
+          <td><span class="count yellow">2</span></td>
+          <td><span class="count">0</span></td>
+          <td><span class="count">0</span></td>
+        </tr>
+        <tr>
+          <td>QMAKE</td>
+          <td><span class="count">0</span></td>
+          <td><span class="count yellow">1</span></td>
+          <td><span class="count">0</span></td>
+          <td><span class="count">0</span></td>
+        </tr>
+        <tr>
+          <td>STY</td>
+          <td><span class="count">0</span></td>
+          <td><span class="count">0</span></td>
+          <td><span class="count blue">3</span></td>
+          <td><span class="count">0</span></td>
+        </tr>
+        <tr>
+          <td>QML</td>
+          <td><span class="count">0</span></td>
+          <td><span class="count yellow">1</span></td>
+          <td><span class="count">0</span></td>
+          <td><span class="count">0</span></td>
+        </tr>
+        <tr>
+          <td>HASH</td>
+          <td><span class="count red">1</span></td>
+          <td><span class="count">0</span></td>
+          <td><span class="count">0</span></td>
+          <td><span class="count">0</span></td>
+        </tr>
+        <tr class="total">
+          <td>Total</td>
+          <td><span class="count red">8</span></td>
+          <td><span class="count yellow">6</span></td>
+          <td><span class="count blue">3</span></td>
+          <td><span class="count purple">2</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- VERDICT -->
+  <div class="verdict-banner not-ready">
+    <div class="verdict-icon">&#x1F534;</div>
+    <div>
+      <div class="verdict-text">Not ready for Qt6 - blocking issues found</div>
+      <div class="verdict-detail">8 blocking issues across API, HDR, MOD, and HASH categories must be resolved before migration. 2 investigation targets require manual verification.</div>
+    </div>
+  </div>
+
+  <!-- DISCLAIMER -->
+  <div class="disclaimer">
+    This is static analysis. A clean report is not the same as confirmed Qt6 readiness - it cannot see runtime/visual regressions (QML's RHI-based rendering, the rewritten QtMultimedia backend, QtWebEngine API drift).
+  </div>
+
+</div>
+<!-- END main -->
+
+<!-- FOOTER -->
+<div class="footer">
+  <span class="footer-note">Generated 22 Jun 2025 &middot; Somco</span>
+  <span class="footer-brand">Powered by <span>Somco Migration Skill</span></span>
+</div>
+
+</body>
+</html>
