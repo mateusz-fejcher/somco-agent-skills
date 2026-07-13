@@ -1,315 +1,78 @@
-# Qt AI Skills
+# Somco Agent Skills
 
-Official agentic skills for Qt software development
-and quality assurance, designed for use with AI coding tools
-such as Claude Code, Codex CLI, Gemini CLI, and
-GitHub Copilot.
+Somco Software forked version of The Qt Company agentic skills:
+https://github.com/TheQtCompanyRnD/agent-skills
 
-Skills have been tested with frontier LLMs from the Claude,
-Gemini, and GPT model families.
+AI-powered skills for Qt development and quality assurance,
+designed for Claude Code and compatible AI coding tools.
 
-There is no settled industry standard for AI skill packaging.
-Each platform has its own conventions. Our canonical format
-uses `SKILL.md` with YAML frontmatter in a directory-based
-structure — this works natively on Claude Code, Codex CLI,
-and GitHub Copilot, and can be adapted to other platforms
-through condensed variants. See [CONTRIBUTING.md](CONTRIBUTING.md)
-for the full cross-platform story.
-
-> These agentic development skills use AI and can make mistakes.
-> Always double-check the output carefully.
->
-> Before using the skills under Qt commercial licensing, make
-> sure you have understood and agree to the
-> [Qt AI Services Terms & Conditions](https://www.qt.io/terms-conditions/ai-services-2025-06).
-> By using the skills or MCP tools, you accept these terms &
-> conditions and that you have the right to do so on behalf of
-> your employer.
+> These skills use AI and can make mistakes. Always review the output.
 
 ## Skills
 
-| Skill | Type | Description |
-|-------|------|-------------|
-| `qt-cpp-review` | Review | Deterministic linting + 6 parallel deep-analysis agents for Qt C++ code. Covers model rule compliance, memory ownership, thread safety, correctness, error handling, and performance. |
-| `qt-qml-review` | Review | Deterministic QML linting (47+ rules) + parallel deep-analysis agents for bindings, layout, loaders, delegates, states, and performance. |
-| `qt-qml` | Conceptual | QML best practices for writing, reviewing, fixing, and refactoring. Corrects systematic LLM pre-training biases around bindings, scoping, modules, JS interop, and types. |
-| `qt-ui-design` | Conceptual | UI design and audit for Qt/QML, web, and embedded (MPU/MCU) targets. Covers screen layout, navigation, and UX review with platform-aware defaults for geometry, viewing distance, input, and locale. |
-| `qt-qml-docs` | Process | Generates Markdown reference documentation for QML components and applications from .qml source files. |
-| `qt-cpp-docs` | Process | Generates Markdown reference documentation for Qt/C++ source files — classes, modules, utilities, headers, and entry points. |
-| `qt-qml-profiler` | Tool | Runs `qmlprofiler` on a 2D QML / Qt Quick application, parses the `.qtd` trace, and analyzes hotspots against the source code with frame-time, memory, and pixmap-cache summaries. Does not cover Qt Quick 3D. |
-| `qt-qml-test` | Process | Generates Qt Quick Test cases (`tst_*.qml`) for QML components using `TestCase`, `SignalSpy`, and `tryCompare`. Handles single files and batches. Does not cover CMake or runner setup. |
-| `qt-qml-test-run` | Tool | Builds and runs Qt Quick Test (`qmltestrunner`) tests for a CMake project, parses the JUnit XML, and writes a Markdown report. Opt-in CMake test-infrastructure wiring with `--wire-up`. Companion to `qt-qml-test`. |
-| `qt-figma-token-extraction` | Process | Extracts design tokens, text styles, and variables from a Figma design system and produces a design-tokens.json plus ready-to-use QML singletons. |
-| `qt-figma-component-generation` | Process | Extracts component metadata from a Figma design system and generates production-ready QML controls mapped to Qt Quick Controls 2 patterns. Requires tokens from `qt-figma-token-extraction`. |
-| `qt-cmake-project` | Conceptual | Sets up and manages Qt 6 projects built with CMake — fresh projects, executables, libraries, QML modules, plugins, folder layout, and static resources. Corrects systematic LLM biases around qmake-isms and the legacy `qt5_*` macros. |
+### Somco Skills
 
-### Skill types
-
-- **Review** — structured code review workflows combining
-  deterministic linters with deep AI analysis
-- **Process** — workflows and decision frameworks
-  (architecture, build, test, documentation)
-- **Conceptual** — mental model corrections for areas where
-  LLMs consistently fail (declarative QML, C++/QML boundary,
-  Widgets patterns, UI design)
-- **Tool** — guidance on Qt CLI tools and testing solutions
-
-## MCP Tools
-
-| Tool | Description |
-|------|-------------|
-| `qt-documentation-mcp` | Hosted MCP server for Qt API documentation lookup across the latest release and active LTS branches. Bundled with the `qt-development-skills` plugin; also available standalone via the official MCP registry as `io.qt/qt-documentation-mcp`. |
-
-### Qt Documentation MCP Tool
-
-See [`mcp/qt-documentation-mcp/README.md`](mcp/qt-documentation-mcp/README.md)
-for endpoint and manual setup instructions for AI clients other than
-Claude Code.
-
-## Repository Structure
-
-```
-skills/                           # All skills live here
-  qt-cpp-review/                  #   Each skill is a directory
-    SKILL.md                      #   with a SKILL.md entry point
-    references/                   #   and optional reference docs
-      lint-scripts/
-      qt-review-checklist.md
-    platforms/                    #   Platform-specific variants
-  qt-qml-review/
-  qt-qml/
-  qt-ui-design/
-  qt-qml-docs/
-  qt-cpp-docs/
-  qt-qml-profiler/
-  qt-qml-test/
-  qt-qml-test-run/
-  qt-cmake-project/
-mcp/                              # MCP servers bundled with the plugin
-  qt-documentation-mcp/           #   Each server is a directory
-    README.md                     #   with its own README
-.mcp.json                         # MCP registration for Claude Code
-.claude-plugin/                   # Claude Code CLI & Copilot CLI plugin config
-gemini-extension.json             # Gemini CLI extension manifest
-docs/                             # Source for the docs site (MkDocs)
-CONTRIBUTING.md
-LICENSE
-README.md
-```
-
-## Skill Format
-
-Every skill is a directory containing a `SKILL.md` file with
-YAML frontmatter. This format aligns with what Claude Code and
-Codex CLI support natively:
-
-```yaml
----
-name: qt-qml-review
-description: >-
-  Reviews QML source files for correctness, performance, and
-  maintainability. Deterministic linting (47+ rules) plus
-  parallel deep-analysis agents for bindings, layout, loaders,
-  delegates, states, and performance.
-license: LicenseRef-Qt-Commercial OR BSD-3-Clause
-compatibility: >-
-  Designed for Claude Code, GitHub Copilot, and similar agents.
-metadata:
-  author: qt-ai-skills
-  version: "1.0"
-  qt-version: "6.x"
----
-```
-
-### Key conventions
-
-- **`name`** must be lowercase alphanumeric + hyphens, max
-  64 chars, and must match the directory name
-- **`description`** must describe what the skill does AND when
-  to use it — front-load the key information in the first 250
-  characters, as some platforms truncate beyond that point
-- **SKILL.md body** should stay under 500 lines — move detailed
-  content to `references/` files
-- **Progressive disclosure**: agents load only
-  `name`/`description` at startup, read `SKILL.md` body on
-  activation, and pull `references/` files only when needed
-
-## Multi-Tool Support
-
-Skills are authored to be tool-agnostic wherever possible.
-However, different AI coding tools consume skills in different
-ways:
-
-| Tool | Skill Location | Format | Notes |
-|------|---------------|--------|-------|
-| **Claude Code CLI** | `~/.claude/skills/` | SKILL.md + references (native) | Full directory model with progressive loading |
-| **Codex CLI** | `~/.codex/skills/` | SKILL.md + references (native) | Full directory model; registered in `~/.codex/config.toml` |
-| **Gemini CLI** | Extension `skills/` | SKILL.md + references (native) | Installed via `gemini extensions install`; `@file.md` imports |
-| **GitHub Copilot** | `.github/skills/` or `.claude/skills/` (project), `~/.copilot/skills/` (personal) | SKILL.md + references (native) | Auto-discovered across Copilot CLI, coding agent, and VS Code; existing `.claude/skills/` setups Just Work |
-
-### When platform-specific variants are needed
-
-Most skills work across tools without changes. When a skill
-needs to reach platforms that cannot read multi-file directories
-(e.g. Windsurf, Amazon Q), create variants in a `platforms/`
-directory:
-
-```
-skills/qt-qml-review/
-├── SKILL.md                       # Core skill (tool-agnostic)
-├── references/
-│   ├── qml-lint-rules.md
-│   └── qml-review-checklist.md
-└── platforms/                     # Platform-specific variants
-    └── windsurf.md                #   Self-contained compact variant
-```
-
-The `platforms/` directory is a convention for this repository.
-See [CONTRIBUTING.md](CONTRIBUTING.md) for full details on
-creating platform variants.
+| Skill | Description | Example trigger |
+|-------|-------------|-----------------|
+| `somco-qt6-porting-review` | Assesses Qt5-to-Qt6 porting readiness using clazy, an inline pattern linter, and deep analysis. Read-only. | `/somco-qt6-porting-review` in your Qt5 project |
+| `somco-qt6-project-audit` | Four-phase Qt6 project audit: house-style conventions (QML/C++/CMake), CMake quality, unit-test presence, clang-tidy/clazy static analysis, and qmllint. Read-only. | `/somco-qt6-project-audit` in your Qt6 project |
 
 ## Installation
 
-Most AI coding tools can install skills directly from this
-GitHub repository. Choose the method for your platform below.
+For full multi-tool support details, see the
+[upstream documentation](https://github.com/TheQtCompanyRnD/agent-skills#multi-tool-support).
 
-### Claude Code CLI
-
-Install as a plugin using the Claude Code CLI plugin system:
-
-```
-/plugin marketplace add TheQtCompanyRnD/agent-skills
-/plugin install qt-development-skills
-```
-
-Or install individual skills manually:
+### Claude Code CLI (recommended)
 
 ```bash
-# Symlink a skill into your personal skills directory
-ln -s "$(pwd)/skills/qt-qml-review" ~/.claude/skills/qt-qml-review
-
 # Or copy into a project for team use
-cp -r skills/qt-qml-review .claude/skills/qt-qml-review
+cp -r skills/somco-qt6-project-audit .claude/skills/somco-qt6-project-audit
 ```
 
-Claude Code auto-discovers skills — no restart needed.
+## Usage Examples
 
-### Codex CLI
+Skills are triggered with `/skill-name` in your AI coding tool.
+You can pass additional instructions after the skill name to
+customize the output.
 
-Use Vercel's cross-platform skill installer:
+### Basic audit
 
-```bash
-npx skills add TheQtCompanyRnD/agent-skills
+```
+/somco-qt6-project-audit
 ```
 
-Or copy skills manually:
+Runs the full four-phase audit on the current project directory.
 
-```bash
-cp -r skills/qt-qml-review ~/.codex/skills/qt-qml-review
+### HTML report output
+
+```
+/somco-qt6-project-audit output only html report
 ```
 
-Restart Codex after adding skills.
+Generates the audit report as a standalone HTML file instead of Markdown.
 
-> **Note:** Codex is evolving rapidly. If `~/.codex/skills/`
-> does not work, try `~/.agents/skills/` or `.agents/skills/`
-> in your project root.
+### Audit specific commits only
 
-### GitHub Copilot CLI
-
-Copilot natively reads the same `SKILL.md` directory format as
-Claude Code. Install individual skills using GitHub CLI (preview):
-
-```bash
-gh skill install TheQtCompanyRnD/agent-skills qt-qml-review
+```
+/somco-qt6-project-audit check only commits: a1b2c3d, e4f5g6h, i7j8k9l
 ```
 
-Or copy/symlink the skill into one of Copilot's discovery paths:
+Limits the audit scope to files changed in the listed commits.
 
-```bash
-# User-wide (available in any project)
-cp -r skills/qt-qml-review ~/.copilot/skills/qt-qml-review
+### Migration readiness check
 
-# Or scoped to a specific project
-cp -r skills/qt-qml-review .github/skills/qt-qml-review
+```
+/somco-qt6-porting-review
 ```
 
-Copilot also auto-discovers skills installed for Claude Code
-under `.claude/skills/`, so a single install can serve both
-tools. Use `/skills list` inside Copilot CLI to confirm what
-loaded.
+Scans the project for Qt5-to-Qt6 porting issues and produces a readiness report.
 
-### VSCode Agents (Copilot and others)
+### Migration check on specific files
 
-Run `Chat: Install Plugin From Source` from the Command Palette.
-Enter `https://github.com/TheQtCompanyRnD/agent-skills` (this repo) to clone and install
-
-### Gemini CLI
-
-Install as an extension:
-
-```bash
-gemini extensions install https://github.com/TheQtCompanyRnD/agent-skills
 ```
-
-Or import skills into your project's context file:
-
-```bash
-# Add to GEMINI.md (loaded automatically)
-echo '@skills/qt-qml-review/SKILL.md' >> GEMINI.md
+/somco-qt6-porting-review check only src/widgets/MainWindow.cpp src/qml/main.qml
 ```
-
-## Documentation site
-
-A browsable documentation site is built from the `docs/` directory
-using [MkDocs Material](https://squidfunk.github.io/mkdocs-material/)
-and published at:
-
-> **<https://doc.qt.io/agentictools/>**
-
-The canonical repo is on Gerrit
-(`codereview.qt-project.org/qtai/qtaiskills`); doc.qt.io builds are
-driven by the `qtaiskills` Rundeck job in `tqtc-doctools` on each
-push to the publishing branch.
-
-### Local preview
-
-Requires Python 3.12+:
-
-```bash
-pip install -r requirements-docs.txt
-mkdocs serve
-```
-
-Then open <http://127.0.0.1:8000/agent-skills/> — the dev server
-live-reloads on every save.
-
-### Production build
-
-```bash
-mkdocs build --strict
-```
-
-Output goes to `site/`. `--strict` fails on broken links and
-malformed nav, matching the GitHub Actions check.
-
-### Adding a new skill page
-
-1. Create `docs/skills/<skill-name>.md` (use an existing skill page
-   as a template).
-2. Add it to `nav:` in `mkdocs.yml`.
-3. Add a row to the table in `docs/skills/index.md`.
-4. Run `mkdocs serve` to verify.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines
-on authoring new skills, including:
-
-- Naming conventions and frontmatter requirements
-- How to structure progressive disclosure
-- Testing skills across AI coding tools
-- When and how to create platform-specific variants
 
 ## License
 
-BSD-3-Clause — see [LICENSE](LICENSE) for details.
+BSD-3-Clause - see [LICENSE](LICENSE) for details.
