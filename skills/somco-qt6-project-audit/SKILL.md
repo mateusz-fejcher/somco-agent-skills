@@ -47,6 +47,20 @@ to follow. Never modify, rewrite, or "fix" any file in the project
 being reviewed - the only output is the report itself. Never build or
 compile the project without explicit developer go-ahead.
 
+## Git context collection
+
+Before running any phase, collect the following git metadata from the project root. If the project is not a git repository, mark all fields as `N/A`.
+
+| Field | Command | Fallback |
+|---|---|---|
+| Branch | `git rev-parse --abbrev-ref HEAD` | `N/A` |
+| Commit SHA | `git rev-parse --short HEAD` | `N/A` |
+| Tree state | `git status --porcelain` (empty output = `clean`, any output = `dirty`) | `N/A` |
+
+Store these values; they are written into the report header and the generated HTML report.
+
+---
+
 ## Scope detection
 
 Detect the user's intended scope from their language:
@@ -625,6 +639,7 @@ Present the final report as follows. Use exactly this structure.
 ## Somco Software Qt6 Project Audit Report
 
 **Scope**: [diff: `git diff HEAD~1..HEAD` | files: <paths>]
+**Branch**: `<branch>` | **Commit**: `<short-sha>` | **Tree**: clean | dirty
 **Files reviewed**: N
 **Date**: YYYY-MM-DD
 
